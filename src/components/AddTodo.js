@@ -20,7 +20,7 @@ export default class AddTodo extends React.Component{
     render(){
         return (
             <form className="form-container" onSubmit={this.addTodo}>
-                <input type="text" placeholder="Add Todo..." className="input-text" onChange={this.changeAddField} value={this.state.title}></input>
+                <input type="text" placeholder="Add Todo..." className="input-text" name="newTask" onChange={this.changeAddField} value={this.state.title}></input>
                 <input type="submit" value="Add" className="input-submit"></input>
             </form>
         )

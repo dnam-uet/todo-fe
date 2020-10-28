@@ -1,5 +1,6 @@
 import React from 'react';
 import { v4 as uuidv4 } from 'uuid';
+import axios from 'axios';
 
 
 import Header from './layout/Header';
@@ -9,21 +10,6 @@ import AddTodo from './AddTodo';
 export default class TodoApp extends React.Component{
     state = {
         todos: [
-            {
-                id: 1,
-                title: "Setup development environement",
-                completed: true
-            },
-            {
-                id: 2,
-                title: "Setup development environement",
-                completed: false
-            },
-            {
-                id: 3,
-                title: "Setup development environement",
-                completed: false
-            }
         ]
     }
 
@@ -37,21 +23,62 @@ export default class TodoApp extends React.Component{
         })
     }
 
-    deleteItem = (id) => {
+    deleteTodo = id => {
+        const _id = id;
         this.setState({
-            todos: this.state.todos.filter(todo => {return todo.id !== id})
+            todos: [
+                ...this.state.todos.filter(todo => {
+                    return todo.id !== _id;
+                })
+            ]
         })
-    }
+        axios.delete(`http://localhost:3001/removetask/${id}`)
+            .then(
+                res => console.log(res.data)
+            )
+            .catch(
+                err => console.log(err)
+            )
+    };
+        
 
     addItem = (title) => {
-        const newItem = {
-            id: uuidv4(),
-            title: title,
-            completed: false
+        const todo = {
+            newTask: title
         }
-        this.setState({
-            todos: [...this.state.todos, newItem]
-        })
+        axios.post("http://localhost:3001/addtask",todo)
+            .then(
+                res => {
+                    this.setState({
+                        todos: [res.data, ...this.state.todos]
+                    })
+                }
+            )
+            .catch(err => {
+                console.log(err);
+            })
+    }
+
+    componentDidMount(){
+        const config = {
+            params: {
+                _limit: 10
+            }
+        }
+        axios.get("http://localhost:3001/", config)
+            .then( respone => {
+                const newTodos = respone.data.map(data => {
+
+                    return {
+                        id: data.id,
+                        title: data.task,
+                        completed: data.status === "done" ? true : false
+                    }
+                })
+                this.setState({
+                    todos: newTodos
+                })
+            })
     }
     
     render(){
@@ -59,7 +86,7 @@ export default class TodoApp extends React.Component{
             <div className="container">
                 <Header></Header>
                 <AddTodo addTodo={this.addItem}></AddTodo>
-                <Todos todos={this.state.todos} handleChange={this.handleChange} deleteItem={this.deleteItem}></Todos>   
+                <Todos todos={this.state.todos} handleChange={this.handleChange} deleteItem={this.deleteTodo}></Todos>   
             </div>
         )
     }
